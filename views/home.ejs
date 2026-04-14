@@ -4,7 +4,7 @@
 <main>
     <% if(typeof(webdata) !== "undefined" && webdata) { %>
         <% if(webdata.image) { %>
-            <img src="/images/<%= webdata.image %>" alt="Page Image">
+            <img src="<%= webdata.image %>" alt="Page Image" />
         <% } %>
         <%- webdata.content -%>
     <% } %>
