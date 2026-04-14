@@ -110,59 +110,49 @@ app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce
 app.set('view engine', 'ejs');
 
 app.get("/", async (req, res) => {
-    // Check someone is logged in and point to user home or admin home
-
     await connectDB();
-    Page.find({}).then(data => {
-        // Add the page ids to an array and assign that to a session
-        if(typeof(req.session.navInfo) === "undefined") {
-            req.session.navInfo = [];
-        }
-        else {
-            req.session.navInfo.length = 0;
+    try {
+        const data = await Page.find({});
+
+        if (req.session.loggedIn) {
+            return res.redirect("/viewpages");
         }
 
-        for(let dt of data) {
-            req.session.navInfo.push({id: dt._id, name:dt.name});
-        }
-    
-        
-
-        if(req.session.loggedIn) { // User logged in
-            res.redirect("/viewpages");
-            
-        }
-        else { // User not logged in
-            if(req.session.navInfo.length === 0) {
-                res.redirect("/getpage/-1");
-            }
-            else {
-                res.redirect("/getpage/" + req.session.navInfo[0].id);
-            }
-            
+        if (data.length === 0) {
+            return res.redirect("/getpage/-1");
         }
 
-    }).catch(err => {
-        console.log("Page Retrieval Error");
-    });
+        res.redirect("/getpage/" + data[0]._id);
+    } catch (err) {
+        console.error("Page Retrieval Error:", err);
+        res.status(500).send("Error loading home");
+    }
 });
+
+// Helper to get nav info fresh from DB every time
+async function getNavInfo() {
+    const pages = await Page.find({}, '_id name'); // only fetch what you need
+    return pages.map(p => ({ id: p._id, name: p.name }));
+}
 
 app.get("/getpage/:idx", async (req, res) => {
     let id = req.params.idx;
+    await connectDB();
 
-    if(id === "-1") {
-        res.render("home");
-    }
-    else {
-        await connectDB();
-        Page.findOne({_id: id}).then(data => {
-            res.render("home", {navdata: req.session.navInfo, webdata: data});
-        }).catch(err => {
-            console.log("Page Load Error");
-        });
-    }
+    try {
+        const navInfo = await getNavInfo();
 
-});
+        if (id === "-1") {
+            res.render("home", { navdata: navInfo, webdata: null });
+        } else {
+            const data = await Page.findOne({ _id: id });
+            res.render("home", { navdata: navInfo, webdata: data });
+        }
+    } catch (err) {
+        console.error("Page Load Error:", err);
+        res.status(500).send("Error loading page");
+    }
+}); 
 
 app.get("/login", (req, res) => {
     res.render("login");

@@ -1,15 +1,12 @@
 <nav>
-    <% if(typeof(loggedIn) !== "undefined" && loggedIn){%>
+    <% if(typeof(loggedIn) !== "undefined" && loggedIn){ %>
         <a href="/addpage">Add</a>
         <a href="/viewpages">Pages</a>
-
-
-    <%} else {
-        if(typeof(webdata) !== "undefined"){
-            for(data of navdata) {%>
-                <a href="/getpage/<%=data.id%>"><%=data.name%></a>
-                <%}
-            }
-        
-        }%>
+    <% } else { %>
+        <% if(typeof(navdata) !== "undefined" && navdata) { %>
+            <% navdata.forEach(function(item) { %>
+                <a href="/getpage/<%=item.id%>"><%=item.name%></a>
+            <% }); %>
+        <% } %>
+    <% } %>
 </nav>
