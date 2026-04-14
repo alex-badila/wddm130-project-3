@@ -6,6 +6,8 @@ const {check, validationResult} = require('express-validator');
 
 const mongoose = require('mongoose');
 
+const fileUpload = require("express-fileupload");
+
 var session = require('express-session');
 
 
@@ -36,7 +38,8 @@ var session = require('express-session');
 
 const Page = mongoose.model("Page", {
     name: String,
-    content: String
+    content: String,
+    image: String
 });
 
 
@@ -56,7 +59,7 @@ const Admin = mongoose.model('Admin',{
 const app = express()
 
 
-
+app.use(fileUpload());
 
 
 app.use(session({
@@ -189,18 +192,43 @@ app.get("/addpage", (req, res) => {
     }
 });
 
-app.post("/addpage", async (req, res) => {
-    const logName = getLoggedInUser(req);
-    if (!logName) return res.redirect("/login");
+app.post("/addpage", [
+    check("name", "Name is empty").notEmpty(),
+    check("content", "Content is empty").notEmpty()
+],  async (req, res) => {
+    const errors = validationResult(req);
 
-    try {
-        await connectDB();
-        const newPage = new Page({ name: req.body.name, content: req.body.content });
-        await newPage.save();
-        res.redirect("/viewpages");
-    } catch (err) {
-        console.error("Page Save Error:", err);
-        res.status(500).send("Failed to save page.");
+    if (!req.files || !req.files.image) {
+        return res.render("addpage", { errors: [{ msg: "Image is empty" }] });
+    }
+
+    if(errors.isEmpty()) {
+
+        const logName = getLoggedInUser(req);
+        if (!logName) return res.redirect("/login");
+
+        let name = req.body.name;
+        let imageName = req.files.image.name;
+        let image = req.files.image;
+        let imagePath = "public/images/" + imageName;
+        let content = req.body.content;
+
+        image.mv(imagePath, function(err) {
+            console.log(err);
+        });
+
+        try {
+            await connectDB();
+            const newPage = new Page({ name: name, content: content, image: imageName });
+            await newPage.save();
+            res.redirect("/viewpages");
+        } catch (err) {
+            console.error("Page Save Error:", err);
+            res.status(500).send("Failed to save page.");
+        }
+    }
+    else {
+        res.render("addpage", {errors: errors.array()});
     }
 });
 
@@ -254,7 +282,13 @@ app.post("/update/:ids", [
     check("content", "Content is empty").notEmpty()
 ], async (req, res) => {
     const errors = validationResult(req);
+    
     let id = req.params.ids;
+
+    if (!req.files || !req.files.image) {
+        return res.render("update", { errors: [{ msg: "Image is empty" }], id: id, page: req.body });
+    }
+
     if(errors.isEmpty()) {
         await connectDB();    
         Page.findOne({_id: id}).then(data => {
@@ -264,7 +298,16 @@ app.post("/update/:ids", [
 
             data.name = req.body.name;
             data.content = req.body.content;
-            
+
+            if (req.files && req.files.image) {
+                let imageName = req.files.image.name;
+                let imagePath = "public/images/" + imageName;
+                req.files.image.mv(imagePath, function(err) {
+                    if (err) console.log(err);
+                });
+                data.image = imageName;
+            }
+
             data.save().then(() => {
                 res.redirect("/viewpages");
             }).catch(err => {

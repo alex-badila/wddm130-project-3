@@ -1,10 +1,14 @@
 <%- include("layouts/header"); -%>
 <%- include("layouts/nav"); -%>
 <main>
-    <form action="/addpage" method="post">
+    <form name="addPageForm" action="/addpage" method="post" enctype="multipart/form-data">
         <div>
             <label>Page Name:</label>
             <input type="text" name="name" />
+        </div>
+        <div>
+            <label for="image">Image:</label>
+            <input id="image" type="file" name="image"><br/>
         </div>
         <div>
             <label>Web Content:</label>
@@ -14,6 +18,12 @@
             <input type="submit" value="Submit" />
             <input type="reset" value="Reset" />
         </div>
+        <p id="errors">
+            <% if(typeof(errors) != "undefined") { 
+                for(let error of errors) {%>
+                <h3><%= error.msg %></h3>
+            <%}}%>
+        </p>
     </form>
 </main>
 <%- include("layouts/footer"); -%>
