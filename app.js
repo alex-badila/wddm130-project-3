@@ -106,7 +106,7 @@ app.get("/", async (req, res) => {
             req.session.navInfo.length = 0;
         }
 
-        for(dt of data) {
+        for(let dt of data) {
             req.session.navInfo.push({id: dt._id, name:dt.name});
         }
     
@@ -182,25 +182,24 @@ app.get("/addpage", (req, res) => {
 });
 
 app.post("/addpage", async (req, res) => {
-    // if (!req.session.loggedIn) {
-    //     return res.redirect("/login");
-    // }
+    if (!req.session.loggedIn) return res.redirect("/login");
 
-    // if (!req.body.name || !req.body.content) {
-    //     return res.redirect("/addpage");
-    // }
+    if (!req.body.name || !req.body.content) {
+        return res.redirect("/addpage");
+    }
 
-    let newPage = new Page({
-        name: req.body.name,
-        content: req.body.content
-    });
-
-    await connectDB();
-    newPage.save().then(data => {
+    try {
+        await connectDB();
+        const newPage = new Page({
+            name: req.body.name,
+            content: req.body.content
+        });
+        await newPage.save();
         res.redirect("/viewpages");
-    }).catch(err => {
-        console.log("Page Save Error");
-    });
+    } catch (err) {
+        console.error("Page Save Error:", err);
+        res.status(500).send("Failed to save page. Please try again.");
+    }
 });
 
 app.get("/viewpages", async (req, res) => {
