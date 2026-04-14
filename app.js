@@ -208,18 +208,15 @@ app.post("/addpage", [
         if (!logName) return res.redirect("/login");
 
         let name = req.body.name;
-        let imageName = req.files.image.name;
-        let image = req.files.image;
-        let imagePath = "public/images/" + imageName;
         let content = req.body.content;
 
-        image.mv(imagePath, function(err) {
-            console.log(err);
-        });
+        let imageData = req.files.image.data.toString('base64');
+        let mimeType = req.files.image.mimetype;
+        let imageSrc = `data:${mimeType};base64,${imageData}`;
 
         try {
             await connectDB();
-            const newPage = new Page({ name: name, content: content, image: imageName });
+            const newPage = new Page({ name: name, content: content, image: imageSrc });
             await newPage.save();
             res.redirect("/viewpages");
         } catch (err) {
@@ -300,12 +297,10 @@ app.post("/update/:ids", [
             data.content = req.body.content;
 
             if (req.files && req.files.image) {
-                let imageName = req.files.image.name;
-                let imagePath = "public/images/" + imageName;
-                req.files.image.mv(imagePath, function(err) {
-                    if (err) console.log(err);
-                });
-                data.image = imageName;
+                let imageData = req.files.image.data.toString('base64');
+                let mimeType = req.files.image.mimetype;
+                let imageSrc = `data:${mimeType};base64,${imageData}`;
+                data.image = imageSrc;
             }
 
             data.save().then(() => {
