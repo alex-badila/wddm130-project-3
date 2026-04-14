@@ -74,11 +74,27 @@ app.use(session({
 
 
 // Connection caching for serverless
-let isConnected = false;
+// let isConnected = false;
 async function connectDB() {
-    if (isConnected) return;
-    await mongoose.connect("mongodb+srv://alexbadila:Yo3kpaxy@cluster0.bwb3wky.mongodb.net/project3-help");
-    isConnected = true;
+    // Already connected
+    if (mongoose.connection.readyState === 1) return;
+    
+    // Connection is in progress, wait for it
+    if (mongoose.connection.readyState === 2) {
+        await new Promise((resolve, reject) => {
+            mongoose.connection.once('connected', resolve);
+            mongoose.connection.once('error', reject);
+        });
+        return;
+    }
+
+    // Add a timeout so it fails fast instead of hanging forever
+    await Promise.race([
+        mongoose.connect("mongodb+srv://alexbadila:Yo3kpaxy@cluster0.bwb3wky.mongodb.net/project3-help"),
+        new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("DB connection timeout")), 10000)
+        )
+    ]);
 }
 
 
