@@ -60,15 +60,15 @@ const app = express()
 
 
 app.use(session({
-
- secret:'mysecret',
-
- resave:false,
-
- saveUninitialized: true
-
-}))
-
+    secret: 'mysecret',
+    resave: false,
+    saveUninitialized: false, // change this to false
+    cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false // set to false, Vercel handles HTTPS at the edge
+    }
+}));
 
 
 
