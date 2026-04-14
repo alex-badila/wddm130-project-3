@@ -1,0 +1,25 @@
+<%- include("layouts/header"); -%>
+<%- include("layouts/nav"); -%>
+<main>
+
+    <h1>Update Order</h1>
+
+    <form action="/update/<%= id %>" method="POST">
+        <div>
+            <label>Name:</label>
+            <input type="text" name="name" value="<%= page.name %>"><br>
+        </div>
+        <div>
+            <label>Web Content:</label>
+            <textarea name="content" class="mytextarea"><%= page.content %></textarea><br>
+        </div>
+
+        <button type="submit">Update</button>
+        <% if(typeof(errors) != "undefined") { 
+        for(let error of errors) {%>
+          <h3><%= error.msg %></h3>
+
+      <%}}%>
+    </form>
+</main>
+<%- include("layouts/footer"); -%>

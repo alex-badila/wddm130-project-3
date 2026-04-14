@@ -1,0 +1,19 @@
+<%- include("layouts/header"); -%>
+<%- include("layouts/nav"); -%>
+<main>
+    <form action="/login" method="post">
+        <div>
+            <label>Username:</label>
+            <input type="text" name="uname" />
+        </div>
+        <div>
+            <label>Password:</label>
+            <input type="password" name="pass" />
+        </div>
+        <div>
+            <input type="submit" value="Submit" />
+            <input type="reset" value="Reset" />
+        </div>
+    </form>
+</main>
+<%- include("layouts/footer"); -%>

@@ -1,0 +1,27 @@
+<%- include("layouts/header"); -%>
+<%- include("layouts/nav"); -%>
+<main>
+    <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if(typeof(data) !== "undefined") {
+        data.forEach(page => {%>
+          <tr>
+            <td><%= page.name %></td>
+            <td>
+              <a href="/update/<%= page._id %>">Update</a>
+            </td>
+            <td><a href="/delete/<%= page._id %>">Delete</a></td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</main>
+<%- include("layouts/footer"); -%>
