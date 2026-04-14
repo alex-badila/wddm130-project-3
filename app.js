@@ -109,22 +109,22 @@ app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce
 
 app.set('view engine', 'ejs');
 
+// Read cookie manually
+function getLoggedInUser(req) {
+    const cookies = req.headers.cookie || '';
+    const match = cookies.match(/logName=([^;]+)/);
+    return match ? match[1] : null;
+}
+
 app.get("/", async (req, res) => {
+    const logName = getLoggedInUser(req);
     await connectDB();
     try {
         const data = await Page.find({});
-
-        if (req.session.loggedIn) {
-            return res.redirect("/viewpages");
-        }
-
-        if (data.length === 0) {
-            return res.redirect("/getpage/-1");
-        }
-
+        if (logName) return res.redirect("/viewpages");
+        if (data.length === 0) return res.redirect("/getpage/-1");
         res.redirect("/getpage/" + data[0]._id);
     } catch (err) {
-        console.error("Page Retrieval Error:", err);
         res.status(500).send("Error loading home");
     }
 });
@@ -158,64 +158,64 @@ app.get("/login", (req, res) => {
     res.render("login");
 });
 
+// Set cookie manually on login
 app.post("/login", async (req, res) => {
     await connectDB();
-    Admin.findOne({uname: req.body.uname}).then(data => {
-        if(data !== null && data.pass === req.body.pass) {
-            // user is logged in
-            req.session.loggedIn = true;
-            req.session.logName = data.uname;
+    try {
+        const data = await Admin.findOne({ uname: req.body.uname });
+        if (data !== null && data.pass === req.body.pass) {
+            res.setHeader('Set-Cookie', `logName=${data.uname}; HttpOnly; SameSite=Lax; Path=/`);
             res.redirect("/");
-        }
-        else {
+        } else {
             res.render("login");
         }
-    }).catch(err => {
-        console.log("Login error");
-    })
+    } catch (err) {
+        res.status(500).send("Login error");
+    }
 });
 
+// Logout
 app.get("/logout", (req, res) => {
-    req.session.loggedIn = false;
-    req.session.logName = "";
+    res.setHeader('Set-Cookie', 'logName=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');
     res.redirect("/");
 });
 
 app.get("/addpage", (req, res) => {
-    if(req.session.loggedIn) {
-        res.render("addpage", {loggedIn: req.session.loggedIn, logName: req.session.logName});
+    const logName = getLoggedInUser(req);
+    if (logName) {
+        res.render("addpage", { loggedIn: true, logName: logName });
+    } else {
+        res.redirect("/login");
     }
 });
 
 app.post("/addpage", async (req, res) => {
-    if (!req.session.loggedIn) return res.redirect("/login");
-
-    if (!req.body.name || !req.body.content) {
-        return res.redirect("/addpage");
-    }
+    const logName = getLoggedInUser(req);
+    if (!logName) return res.redirect("/login");
 
     try {
         await connectDB();
-        const newPage = new Page({
-            name: req.body.name,
-            content: req.body.content
-        });
+        const newPage = new Page({ name: req.body.name, content: req.body.content });
         await newPage.save();
         res.redirect("/viewpages");
     } catch (err) {
         console.error("Page Save Error:", err);
-        res.status(500).send("Failed to save page. Please try again.");
+        res.status(500).send("Failed to save page.");
     }
 });
 
 app.get("/viewpages", async (req, res) => {
-    if(req.session.loggedIn) {
+    const logName = getLoggedInUser(req);
+    if (logName) {
         await connectDB();
-        Page.find({}).then(data => {
-            res.render("viewpages", { data: data, loggedIn: req.session.loggedIn, logName: req.session.logName });
-        }).catch(err => console.log(err));
+        try {
+            const data = await Page.find({});
+            res.render("viewpages", { data: data, loggedIn: true, logName: logName });
+        } catch (err) {
+            res.status(500).send("Error loading pages");
+        }
     } else {
-        res.redirect("/login"); // ← handle the not logged in case
+        res.redirect("/login");
     }
 });
 
@@ -238,7 +238,8 @@ app.get("/delete/:ids", async (req, res) => {
 });
 
 app.get("/update/:ids", async (req, res) => {
-    if (!req.session.loggedIn) return res.redirect("/login");
+    const logName = getLoggedInUser(req);
+    if (!logName) return res.redirect("/login");
 
     await connectDB();
     let id = req.params.ids;
