@@ -1,40 +1,9 @@
 const express = require('express')
-
 const path = require('path')
-
 const {check, validationResult} = require('express-validator');
-
 const mongoose = require('mongoose');
-
 const fileUpload = require("express-fileupload");
-
-var session = require('express-session');
-
-
-
-/*const Order = mongoose.model('Order',{
-
- name:String,
-
- email:String,
-
- phone:String,
-
- postcode:String,
-
- lunch:String,
-
- ticket:Number,
-
- campus:String,
-
- sub:Number,
-
- tax:Number,
-
- total:Number
-
-});*/
+let session = require('express-session');
 
 const Page = mongoose.model("Page", {
     name: String,
@@ -42,42 +11,28 @@ const Page = mongoose.model("Page", {
     image: String
 });
 
-
-
 const Admin = mongoose.model('Admin',{
-
- uname: String,
-
- pass: String
-
+    uname: String,
+    pass: String
 })
-
-
-
-
 
 const app = express()
 
-
 app.use(fileUpload());
-
 
 app.use(session({
     secret: 'mysecret',
     resave: false,
-    saveUninitialized: false, // change this to false
+    saveUninitialized: false, 
     cookie: {
         httpOnly: true,
         sameSite: 'lax',
-        secure: false // set to false, Vercel handles HTTPS at the edge
+        secure: false 
     }
 }));
 
 
-
-
 // Connection caching for serverless
-// let isConnected = false;
 async function connectDB() {
     // Already connected
     if (mongoose.connection.readyState === 1) return;
@@ -102,14 +57,9 @@ async function connectDB() {
 
 
 app.use(express.urlencoded({extended:false}));
-
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.set('views', path.join(__dirname, 'views'));
-
 app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
-
-
 app.set('view engine', 'ejs');
 
 // Read cookie manually
@@ -119,6 +69,7 @@ function getLoggedInUser(req) {
     return match ? match[1] : null;
 }
 
+// Render the home page
 app.get("/", async (req, res) => {
     const logName = getLoggedInUser(req);
     await connectDB();
@@ -138,6 +89,7 @@ async function getNavInfo() {
     return pages.map(p => ({ id: p._id, name: p.name }));
 }
 
+// Renders a specific page
 app.get("/getpage/:idx", async (req, res) => {
     let id = req.params.idx;
     await connectDB();
@@ -157,11 +109,12 @@ app.get("/getpage/:idx", async (req, res) => {
     }
 }); 
 
+// Renders the login page
 app.get("/login", (req, res) => {
     res.render("login");
 });
 
-// Set cookie manually on login
+// Takes the login information, validates it, then redirects to the home page if successful
 app.post("/login", async (req, res) => {
     await connectDB();
     try {
@@ -177,12 +130,13 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// Logout
+// Logs out the user
 app.get("/logout", (req, res) => {
     res.setHeader('Set-Cookie', 'logName=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');
     res.redirect("/");
 });
 
+// Renders the add page form
 app.get("/addpage", (req, res) => {
     const logName = getLoggedInUser(req);
     if (logName) {
@@ -192,6 +146,7 @@ app.get("/addpage", (req, res) => {
     }
 });
 
+// Takes the add page form information, validates it, then adds it to the DB if successful
 app.post("/addpage", [
     check("name", "Name is empty").notEmpty(),
     check("content", "Content is empty").notEmpty()
@@ -229,6 +184,7 @@ app.post("/addpage", [
     }
 });
 
+// Renders the page listing all pages with options to edit or delete
 app.get("/viewpages", async (req, res) => {
     const logName = getLoggedInUser(req);
     if (logName) {
@@ -244,6 +200,7 @@ app.get("/viewpages", async (req, res) => {
     }
 });
 
+// Deletes a specific page
 app.get("/delete/:ids", async (req, res) => {
     // await connectDB();
     let id = req.params.ids;
@@ -262,6 +219,7 @@ app.get("/delete/:ids", async (req, res) => {
     });
 });
 
+// Renders the update page form for a specific page
 app.get("/update/:ids", async (req, res) => {
     const logName = getLoggedInUser(req);
     if (!logName) return res.redirect("/login");
@@ -274,6 +232,7 @@ app.get("/update/:ids", async (req, res) => {
     }).catch(err => console.log(err));
 });
 
+// Takes the update page form information, validates it, then updates the DB if successful
 app.post("/update/:ids", [
     check("name", "Name is empty").notEmpty(),
     check("content", "Content is empty").notEmpty()
