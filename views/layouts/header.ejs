@@ -16,7 +16,7 @@
 <body>
     <header>
         <% if (typeof(loggedIn) !== "undefined" && loggedIn) {%>
-            <a href="/logout">Logout? <%=logName%></a>
+            <a href="/logout">Logout, <%=logName%>?</a>
         <%} else {%>
             <a href="/login">Login</a>
         <%}%>

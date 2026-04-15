@@ -12,3 +12,21 @@
     height: 60px;
     width: auto;
 }
+
+header, footer, nav {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+}
+
+header a {
+    color: white;
+}
+
+nav a {
+    color: white;
+}
+
+footer {
+    text-align: center;
+}
