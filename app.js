@@ -220,7 +220,7 @@ app.get("/delete/:ids", async (req, res) => {
 });
 
 // Renders the update page form for a specific page
-app.get("/update/:ids", async (req, res) => {
+app.get("/update/:ids", async (req, res) => {    
     const logName = getLoggedInUser(req);
     if (!logName) return res.redirect("/login");
 
@@ -228,7 +228,7 @@ app.get("/update/:ids", async (req, res) => {
     let id = req.params.ids;
     Page.findOne({ _id: id }).then(data => {
         if (!data) return res.redirect("/viewpages");
-        res.render("update", { page: data, id: data._id });
+        res.render("update", { page: data, id: data._id, loggedIn: true, logName: logName });
     }).catch(err => console.log(err));
 });
 
@@ -239,8 +239,10 @@ app.post("/update/:ids", [
 ], async (req, res) => {
     const errors = validationResult(req);
     
+    const logName = getLoggedInUser(req);      
+    if (!logName) return res.redirect("/login");
+    
     let id = req.params.ids;
-
 
     if(errors.isEmpty()) {
         await connectDB();    
@@ -261,7 +263,7 @@ app.post("/update/:ids", [
             }
             else if (!data.image) {
                 // No new image uploaded AND no existing image in DB
-                return res.render("update", { errors: [{ msg: "Image is empty" }], id: id, page: req.body });
+                return res.render("update", { errors: [{ msg: "Image is empty" }], id: id, page: req.body, loggedIn: true, logName: logName });
             }
             // else: no new image but existing image in DB, just keep it
 
@@ -274,7 +276,7 @@ app.post("/update/:ids", [
         });
     } 
     else {
-        res.render("update", { page: req.body, errors: errors.array(), id: id });
+        res.render("update", { page: req.body, errors: errors.array(), id: id, loggedIn: true, logName: logName });
     }
 });
 
