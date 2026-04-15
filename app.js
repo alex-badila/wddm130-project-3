@@ -282,9 +282,6 @@ app.post("/update/:ids", [
     
     let id = req.params.ids;
 
-    if (!req.files || !req.files.image) {
-        return res.render("update", { errors: [{ msg: "Image is empty" }], id: id, page: req.body });
-    }
 
     if(errors.isEmpty()) {
         await connectDB();    
@@ -297,11 +294,17 @@ app.post("/update/:ids", [
             data.content = req.body.content;
 
             if (req.files && req.files.image) {
+                // New image uploaded, convert to base64
                 let imageData = req.files.image.data.toString('base64');
                 let mimeType = req.files.image.mimetype;
                 let imageSrc = `data:${mimeType};base64,${imageData}`;
                 data.image = imageSrc;
             }
+            else if (!data.image) {
+                // No new image uploaded AND no existing image in DB
+                return res.render("update", { errors: [{ msg: "Image is empty" }], id: id, page: req.body });
+            }
+            // else: no new image but existing image in DB, just keep it
 
             data.save().then(() => {
                 res.redirect("/viewpages");
