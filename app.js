@@ -276,7 +276,9 @@ app.post("/update/:ids", [
         });
     } 
     else {
-        res.render("update", { page: req.body, errors: errors.array(), id: id, loggedIn: true, logName: logName });
+        await connectDB();
+        const existingPage = await Page.findOne({ _id: id });
+        res.render("update", { page: { ...req.body, image: existingPage ? existingPage.image : null }, errors: errors.array(), id: id, loggedIn: true, logName: logName });
     }
 });
 
