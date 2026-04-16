@@ -11,7 +11,12 @@
         </div>
         <div>
             <label for="image">Image:</label>
-            <input id="image" type="file" name="image" value="<%= page.image %>"><br>
+            <% if (locals.page && locals.page.image) { %>
+                <p>Current image:</p>
+                <img src="<%- page.image %>" alt="Current image" style="max-width: 200px;"><br>
+            <% } %>
+            <input id="image" type="file" name="image"><br>
+            <small>Leave blank to keep the current image.</small><br><br>
         </div>
         <div>
             <label>Web Content:</label>

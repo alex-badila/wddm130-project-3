@@ -11,6 +11,9 @@
             />
         </div>
         <div>
+            <% if (typeof errors !== "undefined") { %>
+                <p><small>Note: You will need to re-select your image.</small></p>
+            <% } %>
             <label for="image">Image:</label>
             <input id="image" type="file" name="image"><br/>
         </div>
