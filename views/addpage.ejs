@@ -4,7 +4,11 @@
     <form name="addPageForm" action="/addpage" method="post" enctype="multipart/form-data">
         <div>
             <label>Page Name:</label>
-            <input type="text" name="name" />
+            <input 
+                type="text" 
+                name="name" 
+                value="<%= locals.formData ? locals.formData.name : '' %>"
+            />
         </div>
         <div>
             <label for="image">Image:</label>
@@ -12,7 +16,9 @@
         </div>
         <div>
             <label>Web Content:</label>
-            <textarea name="content" class="mytextarea"></textarea>
+            <textarea name="content" class="mytextarea">
+                <%= locals.formData ? locals.formData.content : '' %>
+            </textarea>
         </div>
         <div>
             <input type="submit" value="Submit" />
@@ -26,4 +32,7 @@
         </p>
     </form>
 </main>
+<script>
+    var initialContent = '<%- locals.formData && locals.formData.content ? locals.formData.content : "" %>';
+</script>
 <%- include("layouts/footer"); -%>

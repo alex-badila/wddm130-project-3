@@ -1,5 +1,18 @@
 <footer>
     <p>Project 3 Copyright © 2026</p>
 </footer>
+<script>
+    tinymce.init({
+        selector: '.mytextarea',
+        license_key: 'gpl',
+        setup: function(editor) {
+            editor.on('init', function() {
+                if (typeof initialContent !== 'undefined') {
+                    editor.setContent(initialContent);
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>

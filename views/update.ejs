@@ -26,4 +26,7 @@
       <%}}%>
     </form>
 </main>
+<script>
+    var initialContent = '<%- locals.page && locals.page.content ? locals.page.content : "" %>';
+</script>
 <%- include("layouts/footer"); -%>

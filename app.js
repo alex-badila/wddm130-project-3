@@ -151,16 +151,16 @@ app.post("/addpage", [
     check("name", "Name is empty").notEmpty(),
     check("content", "Content is empty").notEmpty()
 ],  async (req, res) => {
+    const logName = getLoggedInUser(req);
+    if (!logName) return res.redirect("/login");
+    
     const errors = validationResult(req);
 
     if (!req.files || !req.files.image) {
-        return res.render("addpage", { errors: [{ msg: "Image is empty" }] });
+        return res.render("addpage", { errors: [{ msg: "Image is empty" }], loggedIn: true, logName: logName, formData: req.body });
     }
 
     if(errors.isEmpty()) {
-
-        const logName = getLoggedInUser(req);
-        if (!logName) return res.redirect("/login");
 
         let name = req.body.name;
         let content = req.body.content;
@@ -180,7 +180,7 @@ app.post("/addpage", [
         }
     }
     else {
-        res.render("addpage", {errors: errors.array()});
+        res.render("addpage", { errors: errors.array(), loggedIn: true, logName: logName, formData: req.body });
     }
 });
 
