@@ -3,6 +3,7 @@
 
 <main>
     <% if(typeof(webdata) !== "undefined" && webdata) { %>
+        <h1><%- webdata.name -%></h1>
         <% if(webdata.image) { %>
             <img src="<%= webdata.image %>" alt="Page Image" />
         <% } %>
