@@ -123,7 +123,7 @@ app.post("/login", async (req, res) => {
             res.setHeader('Set-Cookie', `logName=${data.uname}; HttpOnly; SameSite=Lax; Path=/`);
             res.redirect("/");
         } else {
-            res.render("login");
+            res.render("login", { loginError: "Username or password incorrect", username: req.body.uname });
         }
     } catch (err) {
         res.status(500).send("Login error");

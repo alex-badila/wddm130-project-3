@@ -4,7 +4,7 @@
     <form action="/login" method="post">
         <div>
             <label>Username:</label>
-            <input type="text" name="uname" />
+            <input type="text" name="uname" value="<%= typeof username !== 'undefined' ? username : '' %>" />
         </div>
         <div>
             <label>Password:</label>
@@ -14,6 +14,9 @@
             <input type="submit" value="Submit" />
             <input type="reset" value="Reset" />
         </div>
+        <% if(typeof(loginError) !== "undefined") { %>
+            <p id="error"><%= loginError %></p>
+        <% } %>
     </form>
 </main>
 <%- include("layouts/footer"); -%>
