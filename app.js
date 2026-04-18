@@ -7,8 +7,8 @@ let session = require('express-session');
 
 const Page = mongoose.model("Page", {
     name: String,
-    content: String,
-    image: String
+    image: String,
+    content: String
 });
 
 const Admin = mongoose.model('Admin',{
@@ -171,7 +171,7 @@ app.post("/addpage", [
 
         try {
             await connectDB();
-            const newPage = new Page({ name: name, content: content, image: imageSrc });
+            const newPage = new Page({ name: name, image: imageSrc,content: content });
             await newPage.save();
             res.redirect("/viewpages");
         } catch (err) {
@@ -202,9 +202,9 @@ app.get("/viewpages", async (req, res) => {
 
 // Deletes a specific page
 app.get("/delete/:ids", async (req, res) => {
-    // await connectDB();
+    
     let id = req.params.ids;
-    // console.log(id);
+    
     await connectDB();
     Page.findOneAndDelete({_id: id}).then(data => {
         if(data !== null) {
